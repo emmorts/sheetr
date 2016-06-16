@@ -33,35 +33,45 @@ export default class FrequencyBar extends Component {
 
     this.canvasContext.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-    function draw() {
-      this.drawVisual = requestAnimationFrame(draw.bind(this));
-
-      this.props.analyser.getByteFrequencyData(dataArray);
-
-      this.canvasContext.fillStyle = 'rgb(0, 0, 0)';
-      this.canvasContext.fillRect(0, 0, this._canvas.width, this._canvas.height);
-
-      const barWidth = (this._canvas.width / bufferLength) * 2.5;
-
-      let barHeight;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        barHeight = dataArray[i] * 3;
-
-        this.canvasContext.fillStyle = 'rgb(' + (barHeight + 100) + ', 50, 50)';
-        this.canvasContext.fillRect(x, this._canvas.height - barHeight / 2, barWidth, barHeight / 2);
-
-        x += barWidth + 1;
-      }
-    };
-
-    draw.call(this);
+    this._draw.call(this, bufferLength, dataArray);
   }
 
   render() {
     return (
       <canvas ref={ c => this._canvas = c }></canvas>
     );
+  }
+
+  _draw(binCount, dataArray) {
+    this.drawVisual = requestAnimationFrame(() => this._draw.call(this, binCount, dataArray));
+
+    this.props.analyser.getByteFrequencyData(dataArray);
+
+    this.canvasContext.fillStyle = 'rgb(0, 0, 0)';
+    this.canvasContext.fillRect(0, 0, this._canvas.width, this._canvas.height);
+
+    const barWidth = (this._canvas.width / binCount) * 2.5;
+
+    let barHeight;
+    let x = 0;
+
+    for (let i = 0; i < binCount; i++) {
+      barHeight = dataArray[i] * 3;
+
+      this.canvasContext.fillStyle = 'rgb(' + (barHeight + 100) + ', 50, 50)';
+      this.canvasContext.fillRect(x, this._canvas.height - barHeight / 2, barWidth, barHeight / 2);
+
+      x += barWidth + 1;
+    }
+    this._drawDetails.call(this, binCount, dataArray);
+  }
+
+  _drawDetails(binCount, dataArray) {
+    const max = Math.max(...dataArray);
+    const avg = ~~(dataArray.reduce((c, n) => c + n, 0) / binCount);
+    this.canvasContext.font = '18pt serif';
+    this.canvasContext.fillStyle = 'rgb(255, 255, 255)';
+    this.canvasContext.fillText(`Max Frequency: ${max}`, 10, 40);
+    this.canvasContext.fillText(`Average Frequency: ${avg}`, 10, 80);
   }
 }

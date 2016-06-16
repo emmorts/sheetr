@@ -19,14 +19,14 @@ export default class Listener extends Component {
     navigator.getUserMedia({ audio: true, video: false }, stream => {
       let source = this.audioContext.createMediaStreamSource(stream);
 
+      this.biquadFilter.type = 'lowshelf';
+      this.biquadFilter.frequency.value = 250;
+      this.biquadFilter.gain.value = 50;
+
       source.connect(this.analyser);
       this.analyser.connect(this.gainNode);
       this.gainNode.connect(this.biquadFilter);
       this.biquadFilter.connect(this.audioContext.destination);
-
-      this.biquadFilter.type = 'lowpass';
-      this.biquadFilter.frequency.value = 8000;
-      this.biquadFilter.gain.value = 50;
 
       this._frequencyBar.visualize();
     }, this._onError.bind(this));
