@@ -10,6 +10,7 @@ export default class Listener extends Component {
 
     this.analyser = this.audioContext.createAnalyser();
     this.gainNode = this.audioContext.createGain();
+    this.biquadFilter = this.audioContext.createBiquadFilter();
 
     this._initialize();
   }
@@ -20,7 +21,12 @@ export default class Listener extends Component {
 
       source.connect(this.analyser);
       this.analyser.connect(this.gainNode);
-      this.gainNode.connect(this.audioContext.destination);
+      this.gainNode.connect(this.biquadFilter);
+      this.biquadFilter.connect(this.audioContext.destination);
+
+      this.biquadFilter.type = 'lowpass';
+      this.biquadFilter.frequency.value = 8000;
+      this.biquadFilter.gain.value = 50;
 
       this._frequencyBar.visualize();
     }, this._onError.bind(this));
