@@ -5,7 +5,6 @@ import HomePage from './containers/HomePage';
 import CounterPage from './containers/CounterPage';
 import ListenerPage from './containers/ListenerPage';
 
-
 export default (
   <Route path="/" component={App}>
     <IndexRoute component={HomePage} />

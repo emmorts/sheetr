@@ -4,23 +4,64 @@ import styles from './FrequencyBar.css';
 
 export default class FrequencyBar extends Component {
 
+  componentWillMount() {
+    this.drawVisual = null;
+  }
+
+  handleResize() {
+    this._canvas.width = window.innerWidth;
+    this._canvas.height = window.innerHeight;
+  }
+
   componentDidMount() {
-    this.audioContext = new AudioContext();
+    this.canvasContext = this._canvas.getContext('2d');
+    this._canvas.width = window.innerWidth;
+    this._canvas.height = window.innerHeight;
 
-    this.analyser = this.audioContext.createAnalyser();
+    window.addEventListener('resize', this.handleResize.bind(this));
+  }
 
-    this.source = this.audioContext.createMediaStreamSource(stream);
-    this.analysersource.connect(analyser);
-    analyser.connect(distortion);
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleResize.bind(this));
+  }
+
+  visualize() {
+    this.props.analyser.fftSize = 64;
+
+    const bufferLength = this.props.analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    this.canvasContext.clearRect(0, 0, this._canvas.width, this._canvas.height);
+
+    function draw() {
+      this.drawVisual = requestAnimationFrame(draw.bind(this));
+
+      this.props.analyser.getByteFrequencyData(dataArray);
+
+      this.canvasContext.fillStyle = 'rgb(0, 0, 0)';
+      this.canvasContext.fillRect(0, 0, this._canvas.width, this._canvas.height);
+
+      const barWidth = (this._canvas.width / bufferLength) * 2.5;
+
+      let barHeight;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        barHeight = dataArray[i] * 3;
+
+        this.canvasContext.fillStyle = 'rgb(' + (barHeight + 100) + ', 50, 50)';
+        this.canvasContext.fillRect(x, this._canvas.height - barHeight / 2, barWidth, barHeight / 2);
+
+        x += barWidth + 1;
+      }
+    };
+
+    draw.call(this);
   }
 
   render() {
     return (
-      <div>
-        <div>
-          <h2>FrequencyBar</h2>
-        </div>
-      </div>
+      <canvas ref={ c => this._canvas = c }></canvas>
     );
   }
 }
